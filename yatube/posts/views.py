@@ -1,16 +1,12 @@
-from django.core.paginator import Paginator
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 
 from .forms import PostForm
-
 from .models import Post, Group
-
 from .utils import paginate
 
-
-SELECT_LIMIT = 10
+User = get_user_model()
 
 
 def index(request):
@@ -26,9 +22,7 @@ def index(request):
 def group_list(request, slug):
     group = get_object_or_404(Group, slug=slug)
     posts = group.posts.all()
-    paginator = Paginator(posts, SELECT_LIMIT)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginate(request, posts)
     template = 'posts/group_list.html'
     context = {
         'group': group,
@@ -40,9 +34,7 @@ def group_list(request, slug):
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     posts_author = author.posts.all()
-    paginator = Paginator(posts_author, SELECT_LIMIT)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginate(request, posts_author)
     return render(request, 'posts/profile.html', {
         'author': author,
         'page_obj': page_obj
